@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3 Pianistic Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF2F7; --ink:#23307F; --soft:#C4E4F4; --text:#1B1F2E; --muted:#4F566B; --line:#C9D3E0; --on-ink:#F4F7FB; --track:#D7DEEA;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354}
+}
+:root[data-theme="dark"]{--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);
+  font-family:"Newsreader",Georgia,"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  font-size:1.2rem;line-height:1.7;-webkit-font-smoothing:antialiased}
+:lang(ja) body{line-height:1.85}
+main{max-width:34rem;margin:0 auto;padding:1rem 1.375rem 3rem}
+.top{display:flex;justify-content:flex-end;gap:.2rem}
+.lang{background:none;border:0;color:var(--muted);font:inherit;font-size:1.05rem;padding:.45rem .7rem;border-radius:.4rem;cursor:pointer;min-height:2.75rem}
+.lang[aria-pressed="true"]{color:var(--text);text-decoration:underline;text-underline-offset:.3em}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-spacing:-.015em;margin:1rem 0 .3rem}
+.composer{text-align:right;margin:0 0 1.6rem;letter-spacing:.04em}
+
+/* waveform */
+.wave{position:relative;margin:0 0 .4rem}
+.wave canvas{display:block;width:100%;height:120px}
+.times{display:flex;justify-content:space-between;color:var(--muted);font-size:1rem;font-variant-numeric:tabular-nums;margin:0 0 1.4rem}
+.times b{font-weight:500;color:var(--text)}
+
+/* status + progress */
+.status{text-align:center;font-size:1.25rem;margin:0 0 .8rem;min-height:3.4em;display:flex;align-items:center;justify-content:center}
+.bar{height:10px;border-radius:5px;background:var(--track);overflow:hidden;margin:0 0 1.6rem}
+.bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .25s linear}
+.bar.done{visibility:hidden}
+
+/* the one button */
+.play{display:flex;align-items:center;justify-content:center;gap:.9rem;width:100%;min-height:6.5rem;border:0;border-radius:3.25rem;
+  background:var(--ink);color:var(--on-ink);font:inherit;font-size:2rem;font-weight:600;letter-spacing:.06em;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.play svg{width:2.2rem;height:2.2rem;fill:currentColor;flex:none}
+.play:disabled{background:var(--track);color:var(--muted);cursor:default}
+.play.on{background:var(--soft);color:var(--ink);cursor:default}
+.retry{display:block;margin:1rem auto 0;background:none;border:2px solid var(--ink);color:var(--ink);font:inherit;font-size:1.15rem;
+  padding:.6rem 1.4rem;border-radius:2rem;cursor:pointer}
+.stop{display:block;margin:1.2rem auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:1rem;
+  text-decoration:underline;text-underline-offset:.25em;cursor:pointer;padding:.5rem 1rem;min-height:2.75rem}
+
+ol{margin:2.4rem 0 0;padding:0;list-style:none;counter-reset:s}
+ol li{counter-increment:s;position:relative;padding:.9rem 0 .9rem 2.4rem;border-top:1px solid var(--line)}
+ol li:last-child{border-bottom:1px solid var(--line)}
+ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.5rem;line-height:1.2;color:var(--ink);font-weight:500}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top" role="group" aria-label="Language">
+    <button class="lang" data-l="ja">日本語</button>
+    <button class="lang" data-l="en">English</button>
+  </div>
+  <h1 id="title"></h1>
+  <p class="composer" id="composer"></p>
+
+  <div class="wave"><canvas id="wave" aria-hidden="true"></canvas></div>
+  <div class="times"><span id="tnow">0:00</span><span id="tend">–</span></div>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div class="bar" id="bar"><i id="fill"></i></div>
+
+  <button class="play" id="play" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+    <span id="playlbl"></span>
+  </button>
+  <button class="retry" id="retry" hidden></button>
+  <button class="stop" id="stop" hidden></button>
+
+  <ol>
+    <li data-t="s1"></li>
+    <li data-t="s2"></li>
+    <li data-t="s3"></li>
+  </ol>
+</main>
+<script>
+/* ================= settings — edit here ================= */
+const TITLE    = "3 Pianistic Models";
+const COMPOSER = "Yohan KIM";
+const AUDIO    = "audio.mp3";
+const VERSION  = "1";      // 音源を差し替えたら、この数字を 2, 3 … と上げてください
+const ALLOW_STOP = true;   // 再生中に小さな「停止」を出すか
+const PEAKS = {"dur":688.82,"peaks":[0.14,0.064,0.034,0.016,0.012,0.007,0.002,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.005,0.005,0.006,0.548,0.743,0.568,0.644,0.406,0.665,0.464,0.036,0.82,0.324,0.013,0.006,0.639,0.66,0.66,0.461,0.656,0.824,0.72,0.468,0.748,0.522,0.788,0.834,0.983,0.756,0.057,0.772,0.294,0.032,0.339,0.013,0.009,0.008,0.535,0.957,0.641,0.52,0.474,0.802,0.581,0.855,0.776,0.127,0.01,0.737,0.017,0.007,0.738,0.255,0.963,0.564,0.606,0.762,0.423,0.141,0.183,0.035,0.47,0.809,0.805,0.651,0.755,0.765,0.297,0.328,0.032,0.022,0.014,0.014,0.012,0.722,0.604,0.498,0.111,0.31,0.72,0.325,0.147,0.379,0.169,0.74,0.419,0.056,0.338,0.028,0.572,0.662,0.191,0.797,0.176,0.581,0.774,0.856,0.484,0.16,0.671,0.73,0.378,0.737,0.464,0.376,0.732,0.689,0.575,0.427,0.155,0.079,0.816,0.646,0.589,0.193,0.337,0.61,0.438,0.433,0.466,0.39,0.007,0.359,0.238,0.064,0.006,0.009,0.259,0.008,0.006,0.449,0.374,0.488,0.215,0.093,0.048,0.021,0.018,0.014,0.077,0.072,0.088,0.061,0.006,0.091,0.007,0.106,0.055,0.049,0.007,0.007,0.006,0.006,0.059,0.006,0.006,0.112,0.021,0.112,0.095,0.071,0.024,0.092,0.007,0.006,0.096,0.105,0.048,0.087,0.096,0.144,0.065,0.106,0.009,0.117,0.105,0.027,0.084,0.01,0.009,0.008,0.008,0.087,0.128,0.126,0.112,0.103,0.034,0.105,0.12,0.083,0.054,0.037,0.028,0.101,0.107,0.098,0.118,0.105,0.124,0.076,0.128,0.092,0.105,0.018,0.011,0.027,0.069,0.042,0.114,0.009,0.116,0.106,0.026,0.01,0.01,0.008,0.118,0.138,0.096,0.06,0.04,0.115,0.034,0.113,0.084,0.018,0.01,0.008,0.1,0.115,0.122,0.15,0.137,0.129,0.088,0.06,0.039,0.029,0.009,0.126,0.087,0.056,0.037,0.099,0.022,0.145,0.094,0.018,0.012,0.011,0.009,0.008,0.008,0.095,0.098,0.131,0.115,0.109,0.124,0.084,0.022,0.009,0.1,0.059,0.135,0.097,0.118,0.021,0.114,0.086,0.104,0.039,0.13,0.01,0.097,0.085,0.116,0.095,0.133,0.015,0.094,0.117,0.006,0.139,0.017,0.16,0.113,0.073,0.047,0.037,0.124,0.145,0.099,0.42,0.263,0.048,0.012,0.109,0.494,0.368,0.106,0.172,0.137,0.155,0.383,0.649,0.376,0.102,0.108,0.051,0.173,0.078,0.497,0.397,0.114,0.085,0.067,0.142,0.076,0.043,0.013,0.076,0.058,0.464,0.508,0.103,0.018,0.011,0.125,0.13,0.301,0.63,0.39,0.139,0.176,0.104,0.015,0.102,0.067,0.097,0.012,0.124,0.099,0.013,0.103,0.066,0.041,0.069,0.092,0.009,0.007,0.068,0.008,0.119,0.092,0.105,0.168,0.552,0.592,0.202,0.138,0.087,0.102,0.022,0.186,0.65,0.716,0.426,0.132,0.116,0.038,0.329,0.573,0.099,0.028,0.115,0.1,0.125,0.101,0.016,0.013,0.124,0.202,0.197,0.151,0.138,0.142,0.204,0.183,0.531,0.699,0.415,0.165,0.119,0.11,0.129,0.109,0.164,0.202,0.236,0.41,0.598,0.684,0.342,0.189,0.545,0.57,0.26,0.565,0.552,0.507,0.613,0.259,0.237,0.572,0.373,0.452,0.455,0.214,0.41,0.615,0.664,0.526,0.613,0.653,0.713,0.636,0.615,0.606,0.537,0.579,0.554,0.628,0.548,0.596,0.584,0.641,0.515,0.497,0.572,0.617,0.556,0.645,0.563,0.651,0.69,0.634,0.623,0.726,0.838,0.885,1.0,0.935,0.845,0.772,0.601,0.63,0.638,0.641,0.57,0.606,0.556,0.632,0.737,0.702,0.759,0.691,0.614,0.623,0.516,0.555,0.427,0.662,0.458,0.426,0.384,0.607,0.411,0.323,0.64,0.445,0.58,0.68,0.588,0.671,0.461,0.496,0.576,0.472,0.411,0.609,0.515,0.495,0.584,0.489,0.349,0.466,0.638,0.323,0.533,0.541,0.484,0.455,0.592,0.486,0.533,0.582,0.563,0.435,0.584,0.616,0.356,0.51,0.508,0.405,0.468,0.493,0.417,0.491,0.562,0.513,0.458,0.519,0.47,0.345,0.478,0.502,0.531,0.514,0.534,0.496,0.299,0.425,0.541,0.46,0.417,0.489,0.551,0.363,0.465,0.529,0.317,0.568,0.52,0.324,0.522,0.542,0.291,0.494,0.567,0.269,0.514,0.518,0.393,0.42,0.489,0.422,0.506,0.542,0.46,0.387,0.577,0.504,0.491,0.562,0.399,0.43,0.534,0.289,0.466,0.546,0.393,0.026,0.016,0.013,0.013,0.015,0.014,0.014,0.015,0.011,0.01,0.007,0.006,0.007,0.008,0.008]};   // 波形データ（音源から作成）
+/* ======================================================== */
+
+const T={
+ ja:{play:"再生",playing:"再生中",
+  loading:"音源をダウンロードしています…",progress:p=>`音源をダウンロードしています… ${p}%`,
+  ready:"準備ができました。",playingS:"再生中です。最後までそのままにしてください。",
+  ended:"終わりました。",failed:"ダウンロードできませんでした。電波のある場所で、もう一度お試しください。",
+  retry:"もう一度ダウンロードする",stop:"停止",stopped:"停止しました。",
+  s1:"会場に入る前に（電波のある場所で）このページを開き、「準備ができました。」と表示されるまでお待ちください。表示されたら、地下でも再生できます。",
+  s2:"音量を上げてください。iPhoneの場合は、消音モードをオフにしてください。ヘッドホンやBluetoothスピーカーは使わないでください。",
+  s3:"合図があったら、再生ボタンを押してください。あとは最後まで、そのまま鳴らしておいてください。",
+  noaudio:"このブラウザでは再生できません。SafariかChromeでお試しください。"},
+ en:{play:"Play",playing:"Playing",
+  loading:"Downloading the sound…",progress:p=>`Downloading the sound… ${p}%`,
+  ready:"Ready.",playingS:"Playing. Please let it sound until the end.",
+  ended:"The piece has ended.",failed:"The download did not finish. Please try again where you have a signal.",
+  retry:"Download again",stop:"Stop",stopped:"Stopped.",
+  s1:"Before entering the venue, open this page where you have a signal and wait until it says “Ready.” After that, it will play even underground.",
+  s2:"Turn your volume up. On an iPhone, please make sure silent mode is off. Please don’t use headphones or Bluetooth speakers.",
+  s3:"When you see the signal, tap Play. Then simply let it sound until the end.",
+  noaudio:"This browser can’t play the piece. Please try Safari or Chrome."}
+};
+const $=id=>document.getElementById(id);
+let lang=(navigator.language||"ja").toLowerCase().startsWith("ja")?"ja":"en";
+let state="loading", pct=0;       // loading | ready | failed | playing | ended | stopped
+const audio=new Audio(); audio.preload="auto"; audio.setAttribute("playsinline","");
+
+function render(){
+  const t=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t[e.dataset.t]);
+  document.querySelectorAll(".lang").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));
+  $("status").textContent = state==="loading" ? (pct?t.progress(pct):t.loading)
+    : state==="ready"?t.ready : state==="playing"?t.playingS : state==="ended"?t.ended
+    : state==="stopped"?t.stopped : state==="failed"?t.failed : t.noaudio;
+  $("playlbl").textContent = state==="playing"?t.playing:t.play;
+  $("play").disabled = !(state==="ready"||state==="ended"||state==="stopped");
+  $("play").classList.toggle("on",state==="playing");
+  $("retry").hidden = state!=="failed"; $("retry").textContent=t.retry;
+  $("stop").hidden = !(ALLOW_STOP&&state==="playing"); $("stop").textContent=t.stop;
+  $("bar").classList.toggle("done",state!=="loading");
+}
+document.querySelectorAll(".lang").forEach(b=>b.onclick=()=>{lang=b.dataset.l;render();});
+$("title").textContent=TITLE; document.title=TITLE; $("composer").textContent=COMPOSER;
+
+/* ---------- waveform ---------- */
+const DUR0=PEAKS.dur;
+const fmt=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+function draw(progress){
+  const cv=$("wave"), dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  cv.width=w*dpr; cv.height=h*dpr; const c=cv.getContext("2d"); c.scale(dpr,dpr);
+  const cs=getComputedStyle(document.documentElement), ink=cs.getPropertyValue("--ink").trim(), soft=cs.getPropertyValue("--track").trim();
+  const P=PEAKS.peaks, n=P.length, mid=h/2, x=i=>i/(n-1)*w;
+  const shape=()=>{c.beginPath(); c.moveTo(0,mid);
+    for(let i=0;i<n;i++)c.lineTo(x(i),mid-Math.max(.6,P[i]*(mid-4)));
+    for(let i=n-1;i>=0;i--)c.lineTo(x(i),mid+Math.max(.6,P[i]*(mid-4)));
+    c.closePath();};
+  shape(); c.fillStyle=soft; c.fill();
+  if(progress>0){ c.save(); c.beginPath(); c.rect(0,0,progress*w,h); c.clip(); shape(); c.fillStyle=ink; c.fill(); c.restore(); }
+  c.fillStyle=ink; c.fillRect(0,4,1.5,h-8); c.fillRect(w-1.5,4,1.5,h-8);            // start / end marks
+  if(progress>0&&progress<1){ c.fillRect(progress*w-1,0,2,h); }                       // playhead
+}
+function totalDur(){ return isFinite(audio.duration)&&audio.duration>0 ? audio.duration : DUR0; }
+function tick(){
+  const d=totalDur(), p=Math.min(1,audio.currentTime/d);
+  draw(state==="ended"?1:p); $("tnow").textContent=fmt(audio.currentTime);
+  if(state==="playing") requestAnimationFrame(tick);
+}
+$("tend").textContent=fmt(DUR0); draw(0);
+addEventListener("resize",()=>draw(state==="ended"?1:audio.currentTime/totalDur()));
+
+/* ---------- download once, keep it for offline use ---------- */
+const CACHE="tpm-audio-v"+VERSION, KEY=AUDIO+"?v="+VERSION;
+async function fromCache(){ try{ const c=await caches.open(CACHE); const r=await c.match(KEY); return r?await r.blob():null; }catch(e){ return null; } }
+async function toCache(blob){ try{ const c=await caches.open(CACHE); await c.put(KEY,new Response(blob,{headers:{"Content-Type":"audio/mpeg"}}));
+  for(const k of await caches.keys()) if(k.startsWith("tpm-audio-")&&k!==CACHE) caches.delete(k); }catch(e){} }
+async function download(){
+  if(window.EMBEDDED){ const b=atob(window.EMBEDDED.split(",")[1]); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i); return new Blob([u],{type:"audio/mpeg"}); }
+  const r=await fetch(KEY,{cache:"no-store"}); if(!r.ok) throw new Error(r.status);
+  const total=+r.headers.get("Content-Length")||0;
+  if(!r.body||!total){ return await r.blob(); }
+  const rd=r.body.getReader(), parts=[]; let got=0;
+  for(;;){ const {done,value}=await rd.read(); if(done)break; parts.push(value); got+=value.length;
+    const p=Math.min(99,Math.floor(got/total*100)); if(p!==pct){pct=p; $("fill").style.width=p+"%"; render();} }
+  return new Blob(parts,{type:"audio/mpeg"});
+}
+async function prepare(){
+  state="loading"; pct=0; $("fill").style.width="0%"; render();
+  try{
+    let blob=await fromCache();
+    if(!blob){ blob=await download(); toCache(blob); }
+    audio.src=URL.createObjectURL(blob);         // the whole file is now on the phone
+    $("fill").style.width="100%"; state="ready"; render();
+  }catch(e){ state="failed"; render(); }
+}
+$("retry").onclick=prepare;
+
+/* ---------- play ---------- */
+let wakeLock=null;
+async function keepAwake(){ try{ if("wakeLock" in navigator&&!wakeLock){ wakeLock=await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release",()=>wakeLock=null);} }catch(e){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&state==="playing") keepAwake(); });
+$("play").onclick=async()=>{
+  if($("play").disabled) return;
+  if(state!=="ready") audio.currentTime=0;
+  try{ await audio.play(); }catch(e){ alert(T[lang].noaudio); return; }
+  state="playing"; render(); keepAwake(); tick();
+};
+$("stop").onclick=()=>{ audio.pause(); audio.currentTime=0; state="stopped"; render(); draw(0); $("tnow").textContent="0:00";
+  if(wakeLock)wakeLock.release().catch(()=>{}); };
+audio.addEventListener("loadedmetadata",()=>{ $("tend").textContent=fmt(audio.duration); });
+audio.addEventListener("ended",()=>{ state="ended"; render(); tick(); if(wakeLock)wakeLock.release().catch(()=>{}); });
+
+/* also keep this page itself available offline (reload underground) */
+if("serviceWorker" in navigator && window.isSecureContext && location.protocol!=="file:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+
+render(); prepare();
+</script>
+</body>
+</html>
