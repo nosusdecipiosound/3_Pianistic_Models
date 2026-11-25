@@ -10,13 +10,14 @@
 <style>
 :root{
   --bg:#EDF2F7; --ink:#23307F; --soft:#C4E4F4; --text:#1B1F2E; --muted:#4F566B; --line:#C9D3E0; --on-ink:#F4F7FB; --track:#D7DEEA;
+  --warn-bg:#FFF4D6; --warn-text:#5A4300;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354}
+  :root:not([data-theme="light"]){--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354;--warn-bg:#3A3110;--warn-text:#FFE7A3}
 }
-:root[data-theme="dark"]{--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354}
+:root[data-theme="dark"]{--bg:#10152C;--ink:#9FB0FF;--soft:#24315C;--text:#E6EAF5;--muted:#AAB2CA;--line:#2C3659;--on-ink:#10152C;--track:#2A3354;--warn-bg:#3A3110;--warn-text:#FFE7A3}
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -26,12 +27,14 @@ body{background:var(--bg);color:var(--text);
   font-size:1.2rem;line-height:1.7;-webkit-font-smoothing:antialiased}
 :lang(ja) body{line-height:1.85}
 main{max-width:34rem;margin:0 auto;padding:1rem 1.375rem 3rem}
+.inapp{background:var(--warn-bg);color:var(--warn-text);border-radius:.6rem;padding:.8rem 1rem;margin:.5rem 0 0;font-size:1.05rem;line-height:1.6}
 .top{display:flex;justify-content:flex-end;gap:.2rem}
 .lang{background:none;border:0;color:var(--muted);font:inherit;font-size:1.05rem;padding:.45rem .7rem;border-radius:.4rem;cursor:pointer;min-height:2.75rem}
 .lang[aria-pressed="true"]{color:var(--text);text-decoration:underline;text-underline-offset:.3em}
 button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .ded{font-style:italic;color:var(--muted);font-size:1.02rem;margin:1rem 0 .2rem}
-h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-spacing:-.015em;margin:0 0 .35rem}
+h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-spacing:-.015em;margin:0 0 .35rem;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .movement{font-size:1.3rem;font-weight:500;margin:0 0 .15rem}
 .sub{font-style:italic;color:var(--muted);margin:0 0 .3rem}
 .composer{text-align:right;margin:0 0 1.6rem;letter-spacing:.04em}
@@ -40,11 +43,11 @@ h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-s
 .wave{position:relative;margin:0 0 .4rem}
 .wave canvas{display:block;width:100%;height:120px}
 .times{display:flex;justify-content:space-between;color:var(--muted);font-size:1rem;font-variant-numeric:tabular-nums;margin:0 0 1.4rem}
-.times b{font-weight:500;color:var(--text)}
 
 /* status + progress */
-.status{text-align:center;font-size:1.25rem;margin:0 0 .8rem;min-height:3.4em;display:flex;align-items:center;justify-content:center}
-.bar{height:10px;border-radius:5px;background:var(--track);overflow:hidden;margin:0 0 1.6rem}
+.status{text-align:center;font-size:1.25rem;margin:0 0 .4rem;min-height:3.4em;display:flex;align-items:center;justify-content:center}
+.hint{text-align:center;color:var(--ink);font-size:1.15rem;margin:0 0 .8rem;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:var(--track);overflow:hidden;margin:.4rem 0 1.6rem}
 .bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .25s linear}
 .bar.done{visibility:hidden}
 
@@ -55,10 +58,8 @@ h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-s
 .play svg{width:2.2rem;height:2.2rem;fill:currentColor;flex:none}
 .play:disabled{background:var(--track);color:var(--muted);cursor:default}
 .play.on{background:var(--soft);color:var(--ink);cursor:default}
-.retry{display:block;margin:1rem auto 0;background:none;border:2px solid var(--ink);color:var(--ink);font:inherit;font-size:1.15rem;
-  padding:.6rem 1.4rem;border-radius:2rem;cursor:pointer}
-.stop{display:block;margin:1.2rem auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:1rem;
-  text-decoration:underline;text-underline-offset:.25em;cursor:pointer;padding:.5rem 1rem;min-height:2.75rem}
+.second{display:block;margin:1.1rem auto 0;background:none;border:2px solid var(--ink);color:var(--ink);font:inherit;font-size:1.15rem;
+  padding:.6rem 1.5rem;border-radius:2rem;cursor:pointer;min-height:3rem;touch-action:manipulation}
 
 ol{margin:2.4rem 0 0;padding:0;list-style:none;counter-reset:s}
 ol li{counter-increment:s;position:relative;padding:.9rem 0 .9rem 2.4rem;border-top:1px solid var(--line)}
@@ -74,6 +75,7 @@ ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.
 </head>
 <body>
 <main>
+  <p class="inapp" id="inapp" data-t="inapp" hidden></p>
   <div class="top" role="group" aria-label="Language">
     <button class="lang" data-l="ja">日本語</button>
     <button class="lang" data-l="en">English</button>
@@ -88,18 +90,21 @@ ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.
   <div class="times"><span id="tnow">0:00</span><span id="tend">–</span></div>
 
   <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="hint" id="hint" hidden></p>
   <div class="bar" id="bar"><i id="fill"></i></div>
 
   <button class="play" id="play" disabled>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
     <span id="playlbl"></span>
   </button>
-  <button class="retry" id="retry" hidden></button>
+  <button class="second" id="test" hidden></button>
+  <button class="second" id="retry" hidden></button>
 
   <ol>
     <li data-t="s1"></li>
     <li data-t="s2"></li>
     <li data-t="s3"></li>
+    <li data-t="s4"></li>
   </ol>
 
   <section class="perf" aria-labelledby="perfh">
@@ -119,46 +124,82 @@ const VERSION  = "1";      // 音源を差し替えたら、この数字を 2, 3
 const PEAKS = {"dur":688.82,"peaks":[0.14,0.064,0.034,0.016,0.012,0.007,0.002,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.005,0.005,0.006,0.548,0.743,0.568,0.644,0.406,0.665,0.464,0.036,0.82,0.324,0.013,0.006,0.639,0.66,0.66,0.461,0.656,0.824,0.72,0.468,0.748,0.522,0.788,0.834,0.983,0.756,0.057,0.772,0.294,0.032,0.339,0.013,0.009,0.008,0.535,0.957,0.641,0.52,0.474,0.802,0.581,0.855,0.776,0.127,0.01,0.737,0.017,0.007,0.738,0.255,0.963,0.564,0.606,0.762,0.423,0.141,0.183,0.035,0.47,0.809,0.805,0.651,0.755,0.765,0.297,0.328,0.032,0.022,0.014,0.014,0.012,0.722,0.604,0.498,0.111,0.31,0.72,0.325,0.147,0.379,0.169,0.74,0.419,0.056,0.338,0.028,0.572,0.662,0.191,0.797,0.176,0.581,0.774,0.856,0.484,0.16,0.671,0.73,0.378,0.737,0.464,0.376,0.732,0.689,0.575,0.427,0.155,0.079,0.816,0.646,0.589,0.193,0.337,0.61,0.438,0.433,0.466,0.39,0.007,0.359,0.238,0.064,0.006,0.009,0.259,0.008,0.006,0.449,0.374,0.488,0.215,0.093,0.048,0.021,0.018,0.014,0.077,0.072,0.088,0.061,0.006,0.091,0.007,0.106,0.055,0.049,0.007,0.007,0.006,0.006,0.059,0.006,0.006,0.112,0.021,0.112,0.095,0.071,0.024,0.092,0.007,0.006,0.096,0.105,0.048,0.087,0.096,0.144,0.065,0.106,0.009,0.117,0.105,0.027,0.084,0.01,0.009,0.008,0.008,0.087,0.128,0.126,0.112,0.103,0.034,0.105,0.12,0.083,0.054,0.037,0.028,0.101,0.107,0.098,0.118,0.105,0.124,0.076,0.128,0.092,0.105,0.018,0.011,0.027,0.069,0.042,0.114,0.009,0.116,0.106,0.026,0.01,0.01,0.008,0.118,0.138,0.096,0.06,0.04,0.115,0.034,0.113,0.084,0.018,0.01,0.008,0.1,0.115,0.122,0.15,0.137,0.129,0.088,0.06,0.039,0.029,0.009,0.126,0.087,0.056,0.037,0.099,0.022,0.145,0.094,0.018,0.012,0.011,0.009,0.008,0.008,0.095,0.098,0.131,0.115,0.109,0.124,0.084,0.022,0.009,0.1,0.059,0.135,0.097,0.118,0.021,0.114,0.086,0.104,0.039,0.13,0.01,0.097,0.085,0.116,0.095,0.133,0.015,0.094,0.117,0.006,0.139,0.017,0.16,0.113,0.073,0.047,0.037,0.124,0.145,0.099,0.42,0.263,0.048,0.012,0.109,0.494,0.368,0.106,0.172,0.137,0.155,0.383,0.649,0.376,0.102,0.108,0.051,0.173,0.078,0.497,0.397,0.114,0.085,0.067,0.142,0.076,0.043,0.013,0.076,0.058,0.464,0.508,0.103,0.018,0.011,0.125,0.13,0.301,0.63,0.39,0.139,0.176,0.104,0.015,0.102,0.067,0.097,0.012,0.124,0.099,0.013,0.103,0.066,0.041,0.069,0.092,0.009,0.007,0.068,0.008,0.119,0.092,0.105,0.168,0.552,0.592,0.202,0.138,0.087,0.102,0.022,0.186,0.65,0.716,0.426,0.132,0.116,0.038,0.329,0.573,0.099,0.028,0.115,0.1,0.125,0.101,0.016,0.013,0.124,0.202,0.197,0.151,0.138,0.142,0.204,0.183,0.531,0.699,0.415,0.165,0.119,0.11,0.129,0.109,0.164,0.202,0.236,0.41,0.598,0.684,0.342,0.189,0.545,0.57,0.26,0.565,0.552,0.507,0.613,0.259,0.237,0.572,0.373,0.452,0.455,0.214,0.41,0.615,0.664,0.526,0.613,0.653,0.713,0.636,0.615,0.606,0.537,0.579,0.554,0.628,0.548,0.596,0.584,0.641,0.515,0.497,0.572,0.617,0.556,0.645,0.563,0.651,0.69,0.634,0.623,0.726,0.838,0.885,1.0,0.935,0.845,0.772,0.601,0.63,0.638,0.641,0.57,0.606,0.556,0.632,0.737,0.702,0.759,0.691,0.614,0.623,0.516,0.555,0.427,0.662,0.458,0.426,0.384,0.607,0.411,0.323,0.64,0.445,0.58,0.68,0.588,0.671,0.461,0.496,0.576,0.472,0.411,0.609,0.515,0.495,0.584,0.489,0.349,0.466,0.638,0.323,0.533,0.541,0.484,0.455,0.592,0.486,0.533,0.582,0.563,0.435,0.584,0.616,0.356,0.51,0.508,0.405,0.468,0.493,0.417,0.491,0.562,0.513,0.458,0.519,0.47,0.345,0.478,0.502,0.531,0.514,0.534,0.496,0.299,0.425,0.541,0.46,0.417,0.489,0.551,0.363,0.465,0.529,0.317,0.568,0.52,0.324,0.522,0.542,0.291,0.494,0.567,0.269,0.514,0.518,0.393,0.42,0.489,0.422,0.506,0.542,0.46,0.387,0.577,0.504,0.491,0.562,0.399,0.43,0.534,0.289,0.466,0.546,0.393,0.026,0.016,0.013,0.013,0.015,0.014,0.014,0.015,0.011,0.01,0.007,0.006,0.007,0.008,0.008]};   // 波形データ（音源から作成）
 /* ======================================================== */
 
+/* ---------- opened inside LINE / KakaoTalk etc.? send it to the real browser ---------- */
+const UA=navigator.userAgent;
+const INAPP=/\bLine\/|FBAN|FBAV|Instagram|KAKAOTALK|MicroMessenger/i.test(UA);
+try{
+  const u=new URL(location.href);
+  if(/\bLine\//i.test(UA) && !u.searchParams.has("openExternalBrowser")){
+    u.searchParams.set("openExternalBrowser","1"); location.replace(u.toString());
+  }else if(/KAKAOTALK/i.test(UA)){
+    location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(location.href);
+  }
+}catch(e){}
+
+/* ---------- silent stretches in the recording (from the waveform) ---------- */
+const GAPS=(()=>{ const P=PEAKS.peaks,n=P.length,bin=PEAKS.dur/n,g=[]; let s=-1;
+  for(let i=0;i<n;i++){ const quiet=P[i]<0.005;
+    if(quiet&&s<0) s=i;
+    if(!quiet&&s>=0){ if((i-s)*bin>=15) g.push([s*bin,i*bin]); s=-1; } }   // a silence that runs to the very end is not a gap
+  return g; })();
+const OPEN_GAP=GAPS.find(g=>g[0]<15&&g[1]-g[0]>=30);
+const OPEN_MIN=OPEN_GAP?Math.max(1,Math.round(OPEN_GAP[1]/60)):0;
+
 const T={
- ja:{play:"再生",playing:"再生中",
+ ja:{play:"再生",playing:"再生中",resume:"続きを再生",
   loading:"音源をダウンロードしています…",progress:p=>`音源をダウンロードしています… ${p}%`,
-  ready:"準備ができました。",playingS:"再生中です。最後までそのままにしてください。",
-  ended:"終わりました。",failed:"ダウンロードできませんでした。電波のある場所で、もう一度お試しください。",
-  retry:"もう一度ダウンロードする",stopped:"停止しました。",
-  s1:"会場に入る前に（電波のある場所で）このページを開き、「準備ができました。」と表示されるまでお待ちください。表示されたら、地下でも再生できます。",
-  s2:"音量を上げてください。iPhoneの場合は、消音モードをオフにしてください。ヘッドホンやBluetoothスピーカーは使わないでください。",
-  s3:"合図があったら、再生ボタンを押してください。あとは最後まで、そのまま鳴らしておいてください。",
+  ready:"準備ができました。画面が消えても大丈夫です。",
+  playingS:"再生中です。最後までそのままにしてください。",
+  paused:"音が止まりました。「続きを再生」を押すと、演奏に合った位置から再開します。",
+  ended:"終わりました。ありがとうございました。",
+  failed:"ダウンロードできませんでした。電波のある場所で、もう一度お試しください。",
+  retry:"もう一度ダウンロードする",test:"音を確かめる",testing:"♪ 鳴っています",
+  gap:r=>`まだ音のない部分です。あと ${r} で音が出ます。`,
+  inapp:"このページは SafariまたはChromeで開いてください。（画面の「…」や共有ボタンから「ブラウザで開く」を選べます）",
+  s1:"会場に入る前に（電波のある場所で）このページを開いてください。「準備ができました。」と出たら、地下でも再生できます。",
+  s2:"音量を上げて「音を確かめる」を押してください。聞こえないときは、音量・消音モード・ワイヤレスイヤホンがつながっていないかを確かめてください。",
+  s3:()=>"合図があったら、再生ボタンを押してください。"+(OPEN_MIN?`最初の約${OPEN_MIN}分間は音がありません。画面の時間が進んでいれば、正しく再生されています。`:""),
+  s4:"途中で音が止まってしまったら、「続きを再生」を押してください。",
   perfh:"上演記録",p1h:"初演：2025年3月2日",p1:"東京オペラシティ リサイタルホール「井上郷子ピアノリサイタル #34 ― 飛田泰三／キム・ヨハン作品集」　ピアノ：井上郷子",
   noaudio:"このブラウザでは再生できません。SafariかChromeでお試しください。"},
- en:{play:"Play",playing:"Playing",
+ en:{play:"Play",playing:"Playing",resume:"Resume",
   loading:"Downloading the sound…",progress:p=>`Downloading the sound… ${p}%`,
-  ready:"Ready.",playingS:"Playing. Please let it sound until the end.",
-  ended:"The piece has ended.",failed:"The download did not finish. Please try again where you have a signal.",
-  retry:"Download again",stopped:"Stopped.",
-  s1:"Before entering the venue, open this page where you have a signal and wait until it says “Ready.” After that, it will play even underground.",
-  s2:"Turn your volume up. On an iPhone, please make sure silent mode is off. Please don’t use headphones or Bluetooth speakers.",
-  s3:"When you see the signal, tap Play. Then simply let it sound until the end.",
+  ready:"Ready. It’s fine if your screen turns off.",
+  playingS:"Playing. Please let it sound until the end.",
+  paused:"The sound stopped. Tap “Resume” to rejoin the performance at the right place.",
+  ended:"The piece has ended. Thank you.",
+  failed:"The download did not finish. Please try again where you have a signal.",
+  retry:"Download again",test:"Test the sound",testing:"♪ Playing",
+  gap:r=>`This part is silent. Sound begins in ${r}.`,
+  inapp:"Please open this page in Safari or Chrome (use the “…” or share menu and choose “Open in browser”).",
+  s1:"Before entering the venue, open this page where you have a signal. Once it says “Ready.”, it will play even underground.",
+  s2:"Turn your volume up and tap “Test the sound”. If you hear nothing, check the volume, silent mode, and whether wireless earphones are connected.",
+  s3:()=>"When you see the signal, tap Play."+(OPEN_MIN?` The first ${OPEN_MIN} minute${OPEN_MIN>1?"s are":" is"} silent; if the time on the screen is moving, it is working.`:""),
+  s4:"If the sound stops midway, tap “Resume”.",
   perfh:"Performances",p1h:"Premiere: 2 March 2025",p1:"Tokyo Opera City Recital Hall, Satoko Inoue Piano Recital #34 – Works by Taizo Hida and Yohan Kim. Piano: Satoko Inoue",
   noaudio:"This browser can’t play the piece. Please try Safari or Chrome."}
 };
 const $=id=>document.getElementById(id);
 let lang=(navigator.language||"ja").toLowerCase().startsWith("ja")?"ja":"en";
-let state="loading", pct=0;       // loading | ready | failed | playing | ended | stopped
+let state="loading", pct=0;       // loading | ready | failed | playing | paused | ended
 const audio=new Audio(); audio.preload="auto"; audio.setAttribute("playsinline","");
 
 function render(){
   const t=T[lang];
   document.documentElement.lang=lang;
-  document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t[e.dataset.t]);
+  document.querySelectorAll("[data-t]").forEach(e=>{const v=t[e.dataset.t]; e.textContent=typeof v==="function"?v():v;});
   document.querySelectorAll(".lang").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));
+  $("inapp").hidden=!INAPP;
   $("status").textContent = state==="loading" ? (pct?t.progress(pct):t.loading)
-    : state==="ready"?t.ready : state==="playing"?t.playingS : state==="ended"?t.ended
-    : state==="stopped"?t.stopped : state==="failed"?t.failed : t.noaudio;
-  $("playlbl").textContent = state==="playing"?t.playing:t.play;
-  $("play").disabled = !(state==="ready"||state==="ended"||state==="stopped");
+    : state==="ready"?t.ready : state==="playing"?t.playingS : state==="paused"?t.paused
+    : state==="ended"?t.ended : state==="failed"?t.failed : t.noaudio;
+  $("playlbl").textContent = state==="playing"?t.playing : state==="paused"?t.resume : t.play;
+  $("play").disabled = !(state==="ready"||state==="paused");
   $("play").classList.toggle("on",state==="playing");
   $("retry").hidden = state!=="failed"; $("retry").textContent=t.retry;
+  $("test").hidden = state!=="ready"; $("test").textContent = testing?t.testing:t.test;
   $("bar").classList.toggle("done",state!=="loading");
+  updateHint();
 }
 document.querySelectorAll(".lang").forEach(b=>b.onclick=()=>{lang=b.dataset.l;render();});
 $("title").textContent=TITLE; document.title=TITLE; $("composer").textContent=COMPOSER;
@@ -181,19 +222,31 @@ function draw(progress){
   if(progress>0&&progress<1){ c.fillRect(progress*w-1,0,2,h); }                       // playhead
 }
 function totalDur(){ return isFinite(audio.duration)&&audio.duration>0 ? audio.duration : DUR0; }
-function tick(){
-  const d=totalDur(), p=Math.min(1,audio.currentTime/d);
-  draw(state==="ended"?1:p); $("tnow").textContent=fmt(audio.currentTime);
-  if(state==="playing") requestAnimationFrame(tick);
+function redraw(){ const pos=state==="ended"?totalDur():audio.currentTime; draw(Math.min(1,pos/totalDur())); $("tnow").textContent=fmt(pos); updateHint(); }
+function updateHint(){
+  const h=$("hint"); if(!h) return;
+  const g = state==="playing" ? GAPS.find(g=>audio.currentTime>=g[0]-1&&audio.currentTime<g[1]-2) : null;
+  if(g){ h.textContent=T[lang].gap(fmt(g[1]-audio.currentTime)); h.hidden=false; } else h.hidden=true;
 }
+let ticking=false;
+function tick(){ redraw(); if(state==="playing") requestAnimationFrame(tick); else ticking=false; }
+function startTick(){ if(!ticking){ ticking=true; requestAnimationFrame(tick); } }
 $("tend").textContent=fmt(DUR0); draw(0);
-addEventListener("resize",()=>draw(state==="ended"?1:audio.currentTime/totalDur()));
+addEventListener("resize",redraw);
 
-/* ---------- download once, keep it for offline use ---------- */
+/* ---------- when the listener started (kept on the phone, so a reopened page can rejoin) ---------- */
+const SKEY="tpm-start-v"+VERSION; let startMem=null;
+function setStart(t){ startMem=t; try{ t==null?localStorage.removeItem(SKEY):localStorage.setItem(SKEY,String(t)); }catch(e){} }
+function getStart(){ try{ const v=localStorage.getItem(SKEY); if(v) return +v; }catch(e){} return startMem; }
+function elapsed(){ const s=getStart(); return s?(Date.now()-s)/1000:0; }
+
+/* ---------- download once, keep it on the phone for offline use ---------- */
 const CACHE="tpm-audio-v"+VERSION, KEY=AUDIO+"?v="+VERSION;
-async function fromCache(){ try{ const c=await caches.open(CACHE); const r=await c.match(KEY); return r?await r.blob():null; }catch(e){ return null; } }
+async function fromCache(){ try{ const c=await caches.open(CACHE); const r=await c.match(KEY); if(!r) return null; const b=await r.blob(); return b.size>100000?b:null; }catch(e){ return null; } }
 async function toCache(blob){ try{ const c=await caches.open(CACHE); await c.put(KEY,new Response(blob,{headers:{"Content-Type":"audio/mpeg"}}));
-  for(const k of await caches.keys()) if(k.startsWith("tpm-audio-")&&k!==CACHE) caches.delete(k); }catch(e){} }
+  for(const k of await caches.keys()) if(k.startsWith("tpm-audio-")&&k!==CACHE) caches.delete(k);
+  if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){} }
+async function dropCache(){ try{ await caches.delete(CACHE); }catch(e){} }
 async function download(){
   if(window.EMBEDDED){ const b=atob(window.EMBEDDED.split(",")[1]); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i); return new Blob([u],{type:"audio/mpeg"}); }
   const r=await fetch(KEY,{cache:"no-store"}); if(!r.ok) throw new Error(r.status);
@@ -208,27 +261,88 @@ async function prepare(){
   state="loading"; pct=0; $("fill").style.width="0%"; render();
   try{
     let blob=await fromCache();
-    if(!blob){ blob=await download(); toCache(blob); }
+    if(!blob){ blob=await download(); await toCache(blob); }
     audio.src=URL.createObjectURL(blob);         // the whole file is now on the phone
-    $("fill").style.width="100%"; state="ready"; render();
+    $("fill").style.width="100%";
+    // reopened during or just after the performance?
+    const el=elapsed();
+    if(getStart() && el>0 && el<DUR0-3) state="paused";
+    else if(getStart() && el>=DUR0-3 && el<DUR0+3600) state="ended";
+    else { setStart(null); state="ready"; }
+    render(); redraw();
   }catch(e){ state="failed"; render(); }
 }
 $("retry").onclick=prepare;
 
-/* ---------- play ---------- */
+/* ---------- test sound: a short chime through the same kind of player ---------- */
+let testing=false, testAudio=null;
+function chime(){
+  const sr=22050, n=Math.floor(sr*1.8), buf=new ArrayBuffer(44+n*2), v=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,"RIFF"); v.setUint32(4,36+n*2,true); w(8,"WAVE"); w(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,"data"); v.setUint32(40,n*2,true);
+  const notes=[[0,659.25],[0.45,987.77]];
+  for(let i=0;i<n;i++){ const t=i/sr; let s=0;
+    for(const [on,f] of notes){ const d=t-on; if(d<0) continue; const env=Math.min(1,d/0.006)*Math.exp(-d*3.2);
+      s+=env*(Math.sin(2*Math.PI*f*d)+0.35*Math.sin(4*Math.PI*f*d)+0.12*Math.sin(6*Math.PI*f*d)); }
+    v.setInt16(44+i*2,Math.max(-1,Math.min(1,s*0.42))*32767,true); }
+  return URL.createObjectURL(new Blob([buf],{type:"audio/wav"}));
+}
+$("test").onclick=async()=>{
+  if(testing) return;
+  if(!testAudio){ testAudio=new Audio(chime()); testAudio.setAttribute("playsinline",""); testAudio.onended=()=>{testing=false; render();}; }
+  testAudio.currentTime=0;
+  try{ testing=true; render(); await testAudio.play(); }catch(e){ testing=false; render(); alert(T[lang].noaudio); }
+};
+
+/* ---------- play / resume ---------- */
 let wakeLock=null;
 async function keepAwake(){ try{ if("wakeLock" in navigator&&!wakeLock){ wakeLock=await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release",()=>wakeLock=null);} }catch(e){} }
+function letSleep(){ if(wakeLock) wakeLock.release().catch(()=>{}); }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&state==="playing") keepAwake(); });
-$("play").onclick=async()=>{
-  if($("play").disabled) return;
-  if(state!=="ready") audio.currentTime=0;
-  try{ await audio.play(); }catch(e){ alert(T[lang].noaudio); return; }
-  state="playing"; render(); keepAwake(); tick();
-};
-audio.addEventListener("loadedmetadata",()=>{ $("tend").textContent=fmt(audio.duration); });
-audio.addEventListener("ended",()=>{ state="ended"; render(); tick(); if(wakeLock)wakeLock.release().catch(()=>{}); });
 
-/* also keep this page itself available offline (reload underground) */
+async function go(){
+  let target=0;
+  if(state==="ready"){ setStart(Date.now()); }
+  else if(state==="paused"){
+    target=elapsed();                           // rejoin where the performance is now
+    if(target>=totalDur()-1){ state="ended"; render(); redraw(); return; }
+  } else return;
+  if(audio.readyState>=1){ try{ audio.currentTime=target; }catch(e){} }
+  try{ await audio.play(); }catch(e){ alert(T[lang].noaudio); return; }
+  if(Math.abs(audio.currentTime-target)>1){ try{ audio.currentTime=target; }catch(e){} }
+  state="playing"; render(); keepAwake(); startTick();
+}
+$("play").onclick=()=>{ if(!$("play").disabled) go(); };
+
+audio.addEventListener("loadedmetadata",()=>{ $("tend").textContent=fmt(audio.duration); });
+audio.addEventListener("pause",()=>{             // a call, the lock-screen button, earphones unplugged…
+  if(audio.ended||state!=="playing") return;
+  state="paused"; render(); redraw(); letSleep();
+});
+audio.addEventListener("play",()=>{ if(state==="paused"){ state="playing"; render(); keepAwake(); startTick(); } });
+audio.addEventListener("ended",()=>{ state="ended"; render(); redraw(); letSleep(); });
+audio.addEventListener("error",async()=>{       // the stored copy is damaged: fetch a fresh one
+  if(state==="loading"||!audio.getAttribute("src")) return;
+  await dropCache(); state="failed"; render();
+});
+
+/* lock screen: show the title, rejoin correctly, no scrubbing */
+if("mediaSession" in navigator){
+  try{ navigator.mediaSession.metadata=new MediaMetadata({title:TITLE+" – 2. Object-oriented",artist:COMPOSER}); }catch(e){}
+  try{ navigator.mediaSession.setActionHandler("play",()=>{ if(state==="paused") go(); }); }catch(e){}
+  try{ navigator.mediaSession.setActionHandler("seekto",()=>{}); }catch(e){}
+}
+
+/* staff only: tap the title 5 times to reset this phone to “Ready.” */
+let taps=0,tapTimer;
+$("title").addEventListener("click",()=>{
+  if(state==="loading"||state==="failed") return;
+  taps++; clearTimeout(tapTimer); tapTimer=setTimeout(()=>taps=0,1500);
+  if(taps>=5){ taps=0; audio.pause(); state="ready"; setStart(null); try{audio.currentTime=0;}catch(e){} letSleep(); render(); redraw(); }
+});
+
+/* keep this page itself available offline (reopen or rescan underground) */
 if("serviceWorker" in navigator && window.isSecureContext && location.protocol!=="file:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 
 render(); prepare();
