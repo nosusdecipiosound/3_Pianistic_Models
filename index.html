@@ -64,6 +64,11 @@ ol{margin:2.4rem 0 0;padding:0;list-style:none;counter-reset:s}
 ol li{counter-increment:s;position:relative;padding:.9rem 0 .9rem 2.4rem;border-top:1px solid var(--line)}
 ol li:last-child{border-bottom:1px solid var(--line)}
 ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.5rem;line-height:1.2;color:var(--ink);font-weight:500}
+.perf{margin-top:2.6rem}
+.perf h2{font-size:1rem;font-weight:500;letter-spacing:.08em;color:var(--muted);margin:0 0 .8rem}
+.perf dl{margin:0}
+.perf dt{font-weight:500}
+.perf dd{margin:0 0 1rem;color:var(--muted);font-size:1.05rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -96,6 +101,14 @@ ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.
     <li data-t="s2"></li>
     <li data-t="s3"></li>
   </ol>
+
+  <section class="perf" aria-labelledby="perfh">
+    <h2 id="perfh" data-t="perfh"></h2>
+    <dl>
+      <dt data-t="p1h"></dt>
+      <dd data-t="p1"></dd>
+    </dl>
+  </section>
 </main>
 <script>
 /* ================= settings — edit here ================= */
@@ -115,6 +128,7 @@ const T={
   s1:"会場に入る前に（電波のある場所で）このページを開き、「準備ができました。」と表示されるまでお待ちください。表示されたら、地下でも再生できます。",
   s2:"音量を上げてください。iPhoneの場合は、消音モードをオフにしてください。ヘッドホンやBluetoothスピーカーは使わないでください。",
   s3:"合図があったら、再生ボタンを押してください。あとは最後まで、そのまま鳴らしておいてください。",
+  perfh:"上演記録",p1h:"初演：2025年3月2日",p1:"東京オペラシティ リサイタルホール「井上郷子ピアノリサイタル #34 ― 飛田泰三／キム・ヨハン作品集」　ピアノ：井上郷子",
   noaudio:"このブラウザでは再生できません。SafariかChromeでお試しください。"},
  en:{play:"Play",playing:"Playing",
   loading:"Downloading the sound…",progress:p=>`Downloading the sound… ${p}%`,
@@ -124,6 +138,7 @@ const T={
   s1:"Before entering the venue, open this page where you have a signal and wait until it says “Ready.” After that, it will play even underground.",
   s2:"Turn your volume up. On an iPhone, please make sure silent mode is off. Please don’t use headphones or Bluetooth speakers.",
   s3:"When you see the signal, tap Play. Then simply let it sound until the end.",
+  perfh:"Performances",p1h:"Premiere: 2 March 2025",p1:"Tokyo Opera City Recital Hall, Satoko Inoue Piano Recital #34 – Works by Taizo Hida and Yohan Kim. Piano: Satoko Inoue",
   noaudio:"This browser can’t play the piece. Please try Safari or Chrome."}
 };
 const $=id=>document.getElementById(id);
