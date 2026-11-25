@@ -46,7 +46,6 @@ h1{font-weight:500;font-size:clamp(2.2rem,10vw,3.2rem);line-height:1.08;letter-s
 
 /* status + progress */
 .status{text-align:center;font-size:1.25rem;margin:0 0 .4rem;min-height:3.4em;display:flex;align-items:center;justify-content:center}
-.hint{text-align:center;color:var(--ink);font-size:1.15rem;margin:0 0 .8rem;font-variant-numeric:tabular-nums}
 .bar{height:10px;border-radius:5px;background:var(--track);overflow:hidden;margin:.4rem 0 1.6rem}
 .bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .25s linear}
 .bar.done{visibility:hidden}
@@ -90,7 +89,6 @@ ol li::before{content:counter(s);position:absolute;left:0;top:.8rem;font-size:1.
   <div class="times"><span id="tnow">0:00</span><span id="tend">–</span></div>
 
   <p class="status" id="status" role="status" aria-live="polite"></p>
-  <p class="hint" id="hint" hidden></p>
   <div class="bar" id="bar"><i id="fill"></i></div>
 
   <button class="play" id="play" disabled>
@@ -136,15 +134,6 @@ try{
   }
 }catch(e){}
 
-/* ---------- silent stretches in the recording (from the waveform) ---------- */
-const GAPS=(()=>{ const P=PEAKS.peaks,n=P.length,bin=PEAKS.dur/n,g=[]; let s=-1;
-  for(let i=0;i<n;i++){ const quiet=P[i]<0.005;
-    if(quiet&&s<0) s=i;
-    if(!quiet&&s>=0){ if((i-s)*bin>=15) g.push([s*bin,i*bin]); s=-1; } }   // a silence that runs to the very end is not a gap
-  return g; })();
-const OPEN_GAP=GAPS.find(g=>g[0]<15&&g[1]-g[0]>=30);
-const OPEN_MIN=OPEN_GAP?Math.max(1,Math.round(OPEN_GAP[1]/60)):0;
-
 const T={
  ja:{play:"再生",playing:"再生中",resume:"続きを再生",
   loading:"音源をダウンロードしています…",progress:p=>`音源をダウンロードしています… ${p}%`,
@@ -154,11 +143,10 @@ const T={
   ended:"終わりました。ありがとうございました。",
   failed:"ダウンロードできませんでした。電波のある場所で、もう一度お試しください。",
   retry:"もう一度ダウンロードする",test:"音を確かめる",testing:"♪ 鳴っています",
-  gap:r=>`まだ音のない部分です。あと ${r} で音が出ます。`,
   inapp:"このページは SafariまたはChromeで開いてください。（画面の「…」や共有ボタンから「ブラウザで開く」を選べます）",
   s1:"会場に入る前に（電波のある場所で）このページを開いてください。「準備ができました。」と出たら、地下でも再生できます。",
   s2:"音量を上げて「音を確かめる」を押してください。聞こえないときは、音量・消音モード・ワイヤレスイヤホンがつながっていないかを確かめてください。",
-  s3:()=>"合図があったら、再生ボタンを押してください。"+(OPEN_MIN?`最初の約${OPEN_MIN}分間は音がありません。画面の時間が進んでいれば、正しく再生されています。`:""),
+  s3:"合図があったら、再生ボタンを押してください。画面の時間が進んでいれば、正しく再生されています。",
   s4:"途中で音が止まってしまったら、「続きを再生」を押してください。",
   perfh:"上演記録",p1h:"初演：2025年3月2日",p1:"東京オペラシティ リサイタルホール「井上郷子ピアノリサイタル #34 ― 飛田泰三／キム・ヨハン作品集」　ピアノ：井上郷子",
   noaudio:"このブラウザでは再生できません。SafariかChromeでお試しください。"},
@@ -170,11 +158,10 @@ const T={
   ended:"The piece has ended. Thank you.",
   failed:"The download did not finish. Please try again where you have a signal.",
   retry:"Download again",test:"Test the sound",testing:"♪ Playing",
-  gap:r=>`This part is silent. Sound begins in ${r}.`,
   inapp:"Please open this page in Safari or Chrome (use the “…” or share menu and choose “Open in browser”).",
   s1:"Before entering the venue, open this page where you have a signal. Once it says “Ready.”, it will play even underground.",
   s2:"Turn your volume up and tap “Test the sound”. If you hear nothing, check the volume, silent mode, and whether wireless earphones are connected.",
-  s3:()=>"When you see the signal, tap Play."+(OPEN_MIN?` The first ${OPEN_MIN} minute${OPEN_MIN>1?"s are":" is"} silent; if the time on the screen is moving, it is working.`:""),
+  s3:"When you see the signal, tap Play. If the time on the screen is moving, it is playing correctly.",
   s4:"If the sound stops midway, tap “Resume”.",
   perfh:"Performances",p1h:"Premiere: 2 March 2025",p1:"Tokyo Opera City Recital Hall, Satoko Inoue Piano Recital #34 – Works by Taizo Hida and Yohan Kim. Piano: Satoko Inoue",
   noaudio:"This browser can’t play the piece. Please try Safari or Chrome."}
@@ -199,7 +186,6 @@ function render(){
   $("retry").hidden = state!=="failed"; $("retry").textContent=t.retry;
   $("test").hidden = state!=="ready"; $("test").textContent = testing?t.testing:t.test;
   $("bar").classList.toggle("done",state!=="loading");
-  updateHint();
 }
 document.querySelectorAll(".lang").forEach(b=>b.onclick=()=>{lang=b.dataset.l;render();});
 $("title").textContent=TITLE; document.title=TITLE; $("composer").textContent=COMPOSER;
@@ -222,12 +208,7 @@ function draw(progress){
   if(progress>0&&progress<1){ c.fillRect(progress*w-1,0,2,h); }                       // playhead
 }
 function totalDur(){ return isFinite(audio.duration)&&audio.duration>0 ? audio.duration : DUR0; }
-function redraw(){ const pos=state==="ended"?totalDur():audio.currentTime; draw(Math.min(1,pos/totalDur())); $("tnow").textContent=fmt(pos); updateHint(); }
-function updateHint(){
-  const h=$("hint"); if(!h) return;
-  const g = state==="playing" ? GAPS.find(g=>audio.currentTime>=g[0]-1&&audio.currentTime<g[1]-2) : null;
-  if(g){ h.textContent=T[lang].gap(fmt(g[1]-audio.currentTime)); h.hidden=false; } else h.hidden=true;
-}
+function redraw(){ const pos=state==="ended"?totalDur():audio.currentTime; draw(Math.min(1,pos/totalDur())); $("tnow").textContent=fmt(pos); }
 let ticking=false;
 function tick(){ redraw(); if(state==="playing") requestAnimationFrame(tick); else ticking=false; }
 function startTick(){ if(!ticking){ ticking=true; requestAnimationFrame(tick); } }
