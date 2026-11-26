@@ -135,11 +135,11 @@ try{
 }catch(e){}
 
 const T={
- ja:{play:"再生",playing:"再生中",resume:"続きを再生",
+ ja:{play:"再生",playing:"再生中",
   loading:"音源をダウンロードしています…",progress:p=>`音源をダウンロードしています… ${p}%`,
   ready:"準備ができました。画面が消えても大丈夫です。",
   playingS:"再生中です。最後までそのままにしてください。",
-  paused:"音が止まりました。「続きを再生」を押すと、演奏に合った位置から再開します。",
+  stopped:"音が止まりました。再生し直さずに、このままご鑑賞ください。",
   ended:"終わりました。ありがとうございました。",
   failed:"ダウンロードできませんでした。電波のある場所で、もう一度お試しください。",
   retry:"もう一度ダウンロードする",test:"音を確かめる",testing:"♪ 鳴っています",
@@ -147,14 +147,14 @@ const T={
   s1:"会場に入る前に（電波のある場所で）このページを開いてください。「準備ができました。」と出たら、地下でも再生できます。",
   s2:"音量を上げて「音を確かめる」を押してください。聞こえないときは、音量・消音モード・ワイヤレスイヤホンがつながっていないかを確かめてください。",
   s3:"合図があったら、再生ボタンを押してください。画面の時間が進んでいれば、正しく再生されています。",
-  s4:"途中で音が止まってしまったら、「続きを再生」を押してください。",
+  s4:"万一、途中で音が止まってしまった場合は、再生し直さずに、そのままご鑑賞ください。",
   perfh:"上演記録",p1h:"初演：2025年3月2日",p1:"東京オペラシティ リサイタルホール「井上郷子ピアノリサイタル #34 ― 飛田泰三／キム・ヨハン作品集」　ピアノ：井上郷子",
   noaudio:"このブラウザでは再生できません。SafariかChromeでお試しください。"},
- en:{play:"Play",playing:"Playing",resume:"Resume",
+ en:{play:"Play",playing:"Playing",
   loading:"Downloading the sound…",progress:p=>`Downloading the sound… ${p}%`,
   ready:"Ready. It’s fine if your screen turns off.",
   playingS:"Playing. Please let it sound until the end.",
-  paused:"The sound stopped. Tap “Resume” to rejoin the performance at the right place.",
+  stopped:"The sound has stopped. Please don’t restart it; simply enjoy the rest of the performance.",
   ended:"The piece has ended. Thank you.",
   failed:"The download did not finish. Please try again where you have a signal.",
   retry:"Download again",test:"Test the sound",testing:"♪ Playing",
@@ -162,13 +162,13 @@ const T={
   s1:"Before entering the venue, open this page where you have a signal. Once it says “Ready.”, it will play even underground.",
   s2:"Turn your volume up and tap “Test the sound”. If you hear nothing, check the volume, silent mode, and whether wireless earphones are connected.",
   s3:"When you see the signal, tap Play. If the time on the screen is moving, it is playing correctly.",
-  s4:"If the sound stops midway, tap “Resume”.",
+  s4:"If the sound stops midway, please don’t restart it; simply enjoy the rest of the performance.",
   perfh:"Performances",p1h:"Premiere: 2 March 2025",p1:"Tokyo Opera City Recital Hall, Satoko Inoue Piano Recital #34 – Works by Taizo Hida and Yohan Kim. Piano: Satoko Inoue",
   noaudio:"This browser can’t play the piece. Please try Safari or Chrome."}
 };
 const $=id=>document.getElementById(id);
 let lang=(navigator.language||"ja").toLowerCase().startsWith("ja")?"ja":"en";
-let state="loading", pct=0;       // loading | ready | failed | playing | paused | ended
+let state="loading", pct=0;       // loading | ready | failed | playing | stopped | ended
 const audio=new Audio(); audio.preload="auto"; audio.setAttribute("playsinline","");
 
 function render(){
@@ -178,10 +178,10 @@ function render(){
   document.querySelectorAll(".lang").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));
   $("inapp").hidden=!INAPP;
   $("status").textContent = state==="loading" ? (pct?t.progress(pct):t.loading)
-    : state==="ready"?t.ready : state==="playing"?t.playingS : state==="paused"?t.paused
+    : state==="ready"?t.ready : state==="playing"?t.playingS : state==="stopped"?t.stopped
     : state==="ended"?t.ended : state==="failed"?t.failed : t.noaudio;
-  $("playlbl").textContent = state==="playing"?t.playing : state==="paused"?t.resume : t.play;
-  $("play").disabled = !(state==="ready"||state==="paused");
+  $("playlbl").textContent = state==="playing"?t.playing : t.play;
+  $("play").disabled = state!=="ready";
   $("play").classList.toggle("on",state==="playing");
   $("retry").hidden = state!=="failed"; $("retry").textContent=t.retry;
   $("test").hidden = state!=="ready"; $("test").textContent = testing?t.testing:t.test;
@@ -247,7 +247,7 @@ async function prepare(){
     $("fill").style.width="100%";
     // reopened during or just after the performance?
     const el=elapsed();
-    if(getStart() && el>0 && el<DUR0-3) state="paused";
+    if(getStart() && el>0 && el<DUR0-3) state="stopped";
     else if(getStart() && el>=DUR0-3 && el<DUR0+3600) state="ended";
     else { setStart(null); state="ready"; }
     render(); redraw();
@@ -276,22 +276,17 @@ $("test").onclick=async()=>{
   try{ testing=true; render(); await testAudio.play(); }catch(e){ testing=false; render(); alert(T[lang].noaudio); }
 };
 
-/* ---------- play / resume ---------- */
+/* ---------- play ---------- */
 let wakeLock=null;
 async function keepAwake(){ try{ if("wakeLock" in navigator&&!wakeLock){ wakeLock=await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release",()=>wakeLock=null);} }catch(e){} }
 function letSleep(){ if(wakeLock) wakeLock.release().catch(()=>{}); }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&state==="playing") keepAwake(); });
 
 async function go(){
-  let target=0;
-  if(state==="ready"){ setStart(Date.now()); }
-  else if(state==="paused"){
-    target=elapsed();                           // rejoin where the performance is now
-    if(target>=totalDur()-1){ state="ended"; render(); redraw(); return; }
-  } else return;
-  if(audio.readyState>=1){ try{ audio.currentTime=target; }catch(e){} }
-  try{ await audio.play(); }catch(e){ alert(T[lang].noaudio); return; }
-  if(Math.abs(audio.currentTime-target)>1){ try{ audio.currentTime=target; }catch(e){} }
+  if(state!=="ready") return;
+  setStart(Date.now());
+  if(audio.readyState>=1){ try{ audio.currentTime=0; }catch(e){} }
+  try{ await audio.play(); }catch(e){ setStart(null); alert(T[lang].noaudio); return; }
   state="playing"; render(); keepAwake(); startTick();
 }
 $("play").onclick=()=>{ if(!$("play").disabled) go(); };
@@ -299,19 +294,19 @@ $("play").onclick=()=>{ if(!$("play").disabled) go(); };
 audio.addEventListener("loadedmetadata",()=>{ $("tend").textContent=fmt(audio.duration); });
 audio.addEventListener("pause",()=>{             // a call, the lock-screen button, earphones unplugged…
   if(audio.ended||state!=="playing") return;
-  state="paused"; render(); redraw(); letSleep();
+  state="stopped"; render(); redraw(); letSleep();   // it stays stopped: the listener simply keeps listening
 });
-audio.addEventListener("play",()=>{ if(state==="paused"){ state="playing"; render(); keepAwake(); startTick(); } });
+audio.addEventListener("play",()=>{ if(state==="stopped"||state==="ended") audio.pause(); });
 audio.addEventListener("ended",()=>{ state="ended"; render(); redraw(); letSleep(); });
 audio.addEventListener("error",async()=>{       // the stored copy is damaged: fetch a fresh one
   if(state==="loading"||!audio.getAttribute("src")) return;
   await dropCache(); state="failed"; render();
 });
 
-/* lock screen: show the title, rejoin correctly, no scrubbing */
+/* lock screen: show the title; no restarting or scrubbing from there */
 if("mediaSession" in navigator){
   try{ navigator.mediaSession.metadata=new MediaMetadata({title:TITLE+" – 2. Object-oriented",artist:COMPOSER}); }catch(e){}
-  try{ navigator.mediaSession.setActionHandler("play",()=>{ if(state==="paused") go(); }); }catch(e){}
+  try{ navigator.mediaSession.setActionHandler("play",()=>{}); }catch(e){}
   try{ navigator.mediaSession.setActionHandler("seekto",()=>{}); }catch(e){}
 }
 
